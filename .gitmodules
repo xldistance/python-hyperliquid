@@ -1,0 +1,3 @@
+[submodule "ccxt_source"]
+	path = ccxt_source
+	url = https://github.com/ccxt/ccxt.git
