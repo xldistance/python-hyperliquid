@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from ccxt.base import errors
-from ccxt.base import exchange
-from ccxt.base import decimal_to_precision
+from base import errors
+from base import exchange
+from base import decimal_to_precision
 
 __all__ = exchange.__all__ + decimal_to_precision.__all__ + errors.__all__  # noqa: F405

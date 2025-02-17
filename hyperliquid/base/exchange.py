@@ -4,35 +4,35 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.59'
+__version__ = '4.4.60'
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NetworkError
-from ccxt.base.errors import NotSupported
-from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import DDoSProtection
-from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import InvalidAddress
-from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import ArgumentsRequired
-from ccxt.base.errors import BadSymbol
-from ccxt.base.errors import NullResponse
-from ccxt.base.errors import RateLimitExceeded
-from ccxt.base.errors import BadRequest
-from ccxt.base.errors import BadResponse
-from ccxt.base.errors import InvalidProxySettings
-from ccxt.base.errors import UnsubscribeError
+from base.errors import ExchangeError
+from base.errors import NetworkError
+from base.errors import NotSupported
+from base.errors import AuthenticationError
+from base.errors import DDoSProtection
+from base.errors import RequestTimeout
+from base.errors import ExchangeNotAvailable
+from base.errors import InvalidAddress
+from base.errors import InvalidOrder
+from base.errors import ArgumentsRequired
+from base.errors import BadSymbol
+from base.errors import NullResponse
+from base.errors import RateLimitExceeded
+from base.errors import BadRequest
+from base.errors import BadResponse
+from base.errors import InvalidProxySettings
+from base.errors import UnsubscribeError
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.decimal_to_precision import decimal_to_precision
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
-from ccxt.base.decimal_to_precision import number_to_string
-from ccxt.base.precise import Precise
-from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool
+from base.decimal_to_precision import decimal_to_precision
+from base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
+from base.decimal_to_precision import number_to_string
+from base.precise import Precise
+from base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool
 
 # -----------------------------------------------------------------------------
 
@@ -46,8 +46,8 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 # -----------------------------------------------------------------------------
 
 # ecdsa signing
-from ccxt.static_dependencies import ecdsa
-from ccxt.static_dependencies import keccak
+from static_dependencies import ecdsa
+from static_dependencies import keccak
 
 # eddsa signing
 try:
@@ -56,16 +56,16 @@ except ImportError:
     eddsa = None
 
 # eth signing
-from ccxt.static_dependencies.ethereum import abi
-from ccxt.static_dependencies.ethereum import account
-from ccxt.static_dependencies.msgpack import packb
+from static_dependencies.ethereum import abi
+from static_dependencies.ethereum import account
+from static_dependencies.msgpack import packb
 
 # starknet
-from ccxt.static_dependencies.starknet.ccxt_utils import get_private_key_from_eth_signature
-from ccxt.static_dependencies.starknet.hash.address import compute_address
-from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
-from ccxt.static_dependencies.starknet.hash.utils import message_signature, private_to_stark_key
-from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
+from static_dependencies.starknet.ccxt_utils import get_private_key_from_eth_signature
+from static_dependencies.starknet.hash.address import compute_address
+from static_dependencies.starknet.hash.selector import get_selector_from_name
+from static_dependencies.starknet.hash.utils import message_signature, private_to_stark_key
+from static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
 
 # -----------------------------------------------------------------------------
 
@@ -115,7 +115,7 @@ from time import mktime
 from wsgiref.handlers import format_date_time
 import urllib.parse as _urlencode
 from typing import Any, List
-from ccxt.base.types import Int
+from base.types import Int
 
 # -----------------------------------------------------------------------------
 
@@ -1871,6 +1871,7 @@ class Exchange(object):
                 'createTriggerOrderWs': None,
                 'deposit': None,
                 'editOrder': 'emulated',
+                'editOrders': None,
                 'editOrderWs': None,
                 'fetchAccounts': None,
                 'fetchBalance': True,
@@ -5177,6 +5178,9 @@ class Exchange(object):
 
     def create_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' createOrders() is not supported yet')
+
+    def edit_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' editOrders() is not supported yet')
 
     def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrderWs() is not supported yet')

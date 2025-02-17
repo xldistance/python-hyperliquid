@@ -3,7 +3,7 @@
 from asyncio import sleep, ensure_future, wait_for, TimeoutError
 from .functions import milliseconds, iso8601, deep_extend
 from ccxt import NetworkError, RequestTimeout, NotSupported
-from ccxt.async_support.base.ws.future import Future
+from async_support.base.ws.future import Future
 from collections import deque
 
 class Client(object):

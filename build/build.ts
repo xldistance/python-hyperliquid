@@ -4,6 +4,26 @@ import path from 'path'
 const SYNC_INIT = "./hyperliquid/__init__.py";
 const ASYNC_INIT = "./hyperliquid/async_support/__init__.py";
 
+const FOLDER = "./hyperliquid/"
+
+const getAllFiles = (dirPath: string, arrayOfFiles: string[] = []): string[] => {
+    const files = fs.readdirSync(dirPath);
+
+    files.forEach(file => {
+        if (file.indexOf('static_dependencies') !== -1) {
+            return;
+        }
+        const fullPath = path.join(dirPath, file);
+        if (fs.statSync(fullPath).isDirectory()) {
+            arrayOfFiles = getAllFiles(fullPath, arrayOfFiles);
+        } else {
+            arrayOfFiles.push(fullPath);
+        }
+    });
+
+    return arrayOfFiles;
+};
+
 
 
 function regexAll (text, array) {
@@ -17,9 +37,18 @@ function regexAll (text, array) {
 }
 
 
+async function cleanFile(filePath: string) {
+    let fileContent = fs.readFileSync(filePath, 'utf8');
 
-async function cleanInit() {
-    let fileContent = fs.readFileSync(SYNC_INIT, 'utf8');
+    fileContent = regexAll (fileContent, [
+        [ /^from ccxt\./gm, 'from ' ], // new esm
+    ]).trim ()
+
+    fs.writeFileSync(filePath, fileContent);
+}
+
+async function cleanInit(filePath: string, async = false) {
+    let fileContent = fs.readFileSync(filePath, 'utf8');
     // const fileByLine = fileContent.split('\n');
 
     fileContent = regexAll (fileContent, [
@@ -29,8 +58,12 @@ async function cleanInit() {
     const file: string[] = []
     const fileLines = fileContent.split('\n');
 
-
-    const pattern = /^from ccxt\.([a-zA-Z0-9_]+) import \1.+/;
+    let pattern: any = undefined;
+    if (!async) {
+        pattern = /^from ccxt\.([a-zA-Z0-9_]+) import \1.+/;
+    } else {
+        pattern = /^from ccxt\.async_support\.([a-zA-Z0-9_]+) import \1.+/;
+    }
     let insideExchange = false
     for (const line of fileLines) {
         if (new RegExp(pattern).test(line)) {
@@ -64,7 +97,11 @@ async function cleanInit() {
     }
 
     file.push("")
-    file.push("import hyperliquid")
+    if (async) {
+        file.push("from async_support import hyperliquid")
+    } else {
+        file.push("import hyperliquid")
+    }
 
     let newFileContent = file.join('\n');
     newFileContent = regexAll (newFileContent, [
@@ -76,7 +113,14 @@ async function cleanInit() {
 }
 
 async function main() {
-    await cleanInit();
+    await cleanInit(SYNC_INIT);
+    await cleanInit(ASYNC_INIT, true);
+    const allFiles = getAllFiles(FOLDER);
+    console.log(allFiles)
+    for (const file of allFiles) {
+        await cleanFile(file);
+    }
+
 }
 
 main()

@@ -1,46 +1,25 @@
 # -*- coding: utf-8 -*-
 
-"""CCXT: CryptoCurrency eXchange Trading Library"""
+"""CCXT: CryptoCurrency eXchange Trading Library (Async)"""
 
-# MIT License
-# Copyright (c) 2017 Igor Kroitor
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# -----------------------------------------------------------------------------
 
-# ----------------------------------------------------------------------------
+__version__ = '4.4.60'
 
-__version__ = '4.4.59'
+# -----------------------------------------------------------------------------
 
-# ----------------------------------------------------------------------------
-
-from base.exchange import Exchange                     # noqa: F401
-from base.precise import Precise                       # noqa: F401
+from async_support.base.exchange import Exchange                   # noqa: F401
 
 from base.decimal_to_precision import decimal_to_precision  # noqa: F401
 from base.decimal_to_precision import TRUNCATE              # noqa: F401
 from base.decimal_to_precision import ROUND                 # noqa: F401
-from base.decimal_to_precision import ROUND_UP              # noqa: F401
-from base.decimal_to_precision import ROUND_DOWN            # noqa: F401
+from base.decimal_to_precision import TICK_SIZE             # noqa: F401
 from base.decimal_to_precision import DECIMAL_PLACES        # noqa: F401
 from base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa: F401
-from base.decimal_to_precision import TICK_SIZE             # noqa: F401
 from base.decimal_to_precision import NO_PADDING            # noqa: F401
 from base.decimal_to_precision import PAD_WITH_ZERO         # noqa: F401
 
-from base import errors
+from base import errors                                # noqa: F401
 from base.errors import BaseError                                # noqa: F401
 from base.errors import ExchangeError                            # noqa: F401
 from base.errors import AuthenticationError                      # noqa: F401
@@ -85,11 +64,12 @@ from base.errors import error_hierarchy                          # noqa: F401
 
 
 
+
 base = [
     'Exchange',
-    'Precise',
     'exchanges',
     'decimal_to_precision',
 ]
 
-import hyperliquid
+
+from async_support import hyperliquid

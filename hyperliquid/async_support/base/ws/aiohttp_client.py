@@ -10,8 +10,8 @@ import json
 from asyncio import sleep, ensure_future
 from aiohttp import WSMsgType
 from .functions import milliseconds, iso8601, is_json_encoded_object
-from ccxt.async_support.base.ws.client import Client
-from ccxt.async_support.base.ws.functions import gunzip, inflate
+from async_support.base.ws.client import Client
+from async_support.base.ws.functions import gunzip, inflate
 from ccxt import NetworkError, RequestTimeout, ExchangeClosedByUser
 
 

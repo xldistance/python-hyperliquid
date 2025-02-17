@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.59'
+__version__ = '4.4.60'
 
 # -----------------------------------------------------------------------------
 
@@ -16,27 +16,27 @@ import sys
 import yarl
 import math
 from typing import Any, List
-from ccxt.base.types import Int, Str, Num, Strings
+from base.types import Int, Str, Num, Strings
 
 # -----------------------------------------------------------------------------
 
-from ccxt.async_support.base.throttler import Throttler
+from async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.errors import BaseError, NetworkError, BadSymbol, BadRequest, BadResponse, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded
-from ccxt.base.types import OrderType, OrderSide, OrderRequest, CancellationRequest
+from base.errors import BaseError, NetworkError, BadSymbol, BadRequest, BadResponse, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded
+from base.types import OrderType, OrderSide, OrderRequest, CancellationRequest
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.exchange import Exchange as BaseExchange, ArgumentsRequired
+from base.exchange import Exchange as BaseExchange, ArgumentsRequired
 
 # -----------------------------------------------------------------------------
 
-from ccxt.async_support.base.ws.functions import inflate, inflate64, gunzip
-from ccxt.async_support.base.ws.fast_client import FastClient
-from ccxt.async_support.base.ws.future import Future
-from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
+from async_support.base.ws.functions import inflate, inflate64, gunzip
+from async_support.base.ws.fast_client import FastClient
+from async_support.base.ws.future import Future
+from async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
 
 # -----------------------------------------------------------------------------
@@ -1439,6 +1439,9 @@ class Exchange(BaseExchange):
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' createOrders() is not supported yet')
+
+    async def edit_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' editOrders() is not supported yet')
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrderWs() is not supported yet')
