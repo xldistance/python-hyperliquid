@@ -1,22 +1,18 @@
-import asyncio
 import os
-from random import randint
 import sys
-from pprint import pprint
-
+import asyncio
 root = os.path.dirname(os.path.dirname((os.path.abspath(__file__))))
 sys.path.append(root + '/hyperliquid')
 
 
-import hyperliquid
+import hyperliquid.async_support as hyperliquid
 
 
-def main():
+async def main():
     instance = hyperliquid.hyperliquid({})
-    markets = instance.load_markets()
-    ohlcv = instance.fetch_ohlcv("BTC/USDC:USDC", "1m")
+    await instance.load_markets()
+    ohlcv = await instance.fetch_ohlcv("BTC/USDC:USDC", "1m")
     print(ohlcv)
 
 asyncio.run(main())
-
 
