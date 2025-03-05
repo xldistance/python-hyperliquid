@@ -37,6 +37,15 @@ function cp(source: string, destination: string): void {
     }
 }
 
+async function downloadFile(url, destinationPath) {
+    const response = await fetch(url);
+    const fileStream = fs.createWriteStream(destinationPath);
+    await new Promise((resolve, reject) => {
+      Readable.fromWeb(response.body).pipe(fileStream);
+      fileStream.on('finish', resolve);
+      fileStream.on('error', reject);
+    });
+}
 // ################################################### //
 
 
@@ -56,6 +65,18 @@ class build {
         this.init(exchange);
     }
 
+    async downloadRepo() {
+        // instead of:        
+        // 
+        //      rm -rf python/
+        //      git clone --depth 1 https://github.com/ccxt/ccxt.git
+        //      cp -r ccxt/python ./
+        //
+        const location = __dirname + '/ccxt.zip';
+        const unpackPath = __dirname + '/extracted';
+        await downloadFile ('https://github.com/ccxt/ccxt/archive/refs/heads/master.zip', location);
+        await extractZip(location, { dir: unpackPath });
+    }
 
     moveFiles (exchange:string): void {
         mkdir(`${exchange}`);
