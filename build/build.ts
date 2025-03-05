@@ -37,15 +37,7 @@ function cp(source: string, destination: string): void {
     }
 }
 
-async function downloadFile(url, destinationPath) {
-    const response = await fetch(url);
-    const fileStream = fs.createWriteStream(destinationPath);
-    await new Promise((resolve, reject) => {
-      Readable.fromWeb(response.body).pipe(fileStream);
-      fileStream.on('finish', resolve);
-      fileStream.on('error', reject);
-    });
-}
+
 // ################################################### //
 
 
@@ -74,6 +66,15 @@ class build {
         //
         const location = __dirname + '/ccxt.zip';
         const unpackPath = __dirname + '/extracted';
+        const downloadFile = async (url:string, destinationPath:string) => {
+            const response = await fetch(url);
+            const fileStream = fs.createWriteStream(destinationPath);
+            await new Promise((resolve, reject) => {
+                Readable.fromWeb(response.body).pipe(fileStream);
+                fileStream.on('finish', resolve);
+                fileStream.on('error', reject);
+            });
+        };
         await downloadFile ('https://github.com/ccxt/ccxt/archive/refs/heads/master.zip', location);
         await extractZip(location, { dir: unpackPath });
     }
