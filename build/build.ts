@@ -1,5 +1,11 @@
 import * as fs from 'fs'
 import path from 'path'
+import extractZip from 'extract-zip'
+import { Readable } from 'node:stream'
+import { fileURLToPath } from 'url';
+import { writeFileSync } from 'node:fs'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 
 // ##################### helpers ##################### //
@@ -50,7 +56,7 @@ class build {
         this.init(exchange);
     }
 
-    
+
     moveFiles (exchange:string): void {
         mkdir(`${exchange}`);
         mkdir(`${exchange}/async_support'`);
@@ -190,6 +196,7 @@ class build {
     }
 
     async init (exchange:string) {
+        await this.downloadRepo();
         this.moveFiles(exchange);
         await this.cleanInit(this.SYNC_INIT);
         await this.cleanInit(this.ASYNC_INIT, true);
