@@ -115,16 +115,16 @@ class build {
     allExchangesList:string[] = [];
 
     async setAllExchangesList () {
-        this.allExchangesList = [... fs.readFileSync('./ccxt/python/ccxt/__init__.py').toString().matchAll(/from ccxt\.([a-z0-9_]+) import \1\s+# noqa: F401/g)].map(match => match[1]);
+        this.allExchangesList = fs.readdirSync(__dirname + '/ccxt/ts/src/').filter(file => file.endsWith('.ts')).map(file => file.replace('.ts', ''));  //  [... fs.readFileSync('./ccxt/python/ccxt/__init__.py').matchAll(/from ccxt\.([a-z0-9_]+) import \1\s+# noqa: F401/g)].map(match => match[1]);
     }
 
 
     async init (exchange:string) {
         await this.downloadRepo();
         await this.setAllExchangesList();
-        this.moveFiles(exchange);
         // Remove git dir now (after reading exchanges)
         fs.rmSync(__dirname + '/ccxt/', { recursive: true, force: true });
+        this.moveFiles(exchange);
 
         await this.cleanInitFile(this.destinationFolder + '__init__.py');
         await this.cleanInitFile(this.destinationFolder + 'async_support/__init__.py', true);
