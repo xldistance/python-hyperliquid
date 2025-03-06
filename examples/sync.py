@@ -4,11 +4,11 @@ import sys
 root = os.path.dirname(os.path.dirname((os.path.abspath(__file__))))
 sys.path.append(root + '/')
 
-import hyperliquid.ccxt as ccxt
+from hyperliquid.ccxt import hyperliquid
 
 
 def main():
-    instance = ccxt.hyperliquid({})
+    instance = hyperliquid({})
     instance.load_markets()
     symbol = "BTC/USDC:USDC"
 

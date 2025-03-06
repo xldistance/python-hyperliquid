@@ -5,12 +5,11 @@ import asyncio
 root = os.path.dirname(os.path.dirname((os.path.abspath(__file__))))
 sys.path.append(root + '/')
 
-
-import hyperliquid.ccxt.async_support as ccxt
+from hyperliquid.ccxt.async_support import hyperliquid
 
 
 async def main():
-    instance = ccxt.hyperliquid({})
+    instance = hyperliquid({})
     await instance.load_markets()
     symbol = "BTC/USDC:USDC"
 
