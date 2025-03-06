@@ -4,6 +4,7 @@ import extractZip from 'extract-zip'
 import { Readable } from 'node:stream'
 import { fileURLToPath } from 'url';
 import { writeFileSync } from 'node:fs'
+import { exec, execSync } from 'node:child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -20,7 +21,24 @@ function rmdir(dirPath: string): void {
     fs.rmSync(dirPath, { recursive: true, force: true });
 }
 
+
 function cp(source: string, destination: string): void {
+    // check if source is file or dir
+    if (!fs.existsSync(source)) {
+        console.error(`Source file/directory does not exist: ${source}`);
+        return;
+    }
+    const stats = fs.statSync(source);
+    if (stats.isFile()) {
+        // get parent directory
+        const parentDir = path.dirname(destination);
+        // check if parent directory exists
+        if (!fs.existsSync(parentDir)) {
+            fs.mkdirSync(parentDir, { recursive: true });
+        }
+        fs.copyFileSync(source, destination);
+        return;
+    }
     if (!fs.existsSync(destination)) {
         fs.mkdirSync(destination, { recursive: true });
     }
@@ -28,12 +46,7 @@ function cp(source: string, destination: string): void {
     for (const file of files) {
         const srcPath = path.join(source, file);
         const destPath = path.join(destination, file);
-        const stats = fs.statSync(srcPath);
-        if (stats.isDirectory()) {
-            cp(srcPath, destPath);
-        } else {
-            fs.copyFileSync(srcPath, destPath);
-        }
+        cp(srcPath, destPath);
     }
 }
 
@@ -58,55 +71,42 @@ class build {
     }
 
     async downloadRepo() {
-        // instead of:        
-        // 
-        //      rm -rf python/
-        //      git clone --depth 1 https://github.com/ccxt/ccxt.git
-        //      cp -r ccxt/python ./
-        //
-        const location = __dirname + '/ccxt.zip';
-        const unpackPath = __dirname + '/extracted';
-        const downloadFile = async (url:string, destinationPath:string) => {
-            const response = await fetch(url);
-            const fileStream = fs.createWriteStream(destinationPath);
-            await new Promise((resolve, reject) => {
-                Readable.fromWeb(response.body).pipe(fileStream);
-                fileStream.on('finish', resolve);
-                fileStream.on('error', reject);
-            });
-        };
-        await downloadFile ('https://github.com/ccxt/ccxt/archive/refs/heads/master.zip', location);
-        await extractZip(location, { dir: unpackPath });
+        try {
+            execSync('rm -rf ccxt/', { stdio: 'ignore' });
+        } catch (ex) {
+            execSync('if exist "ccxt" (rmdir /s /q ccxt)'); // for windows (temporarily :)
+        }
+        execSync ('git clone --depth 1 https://github.com/ccxt/ccxt.git');
     }
 
     moveFiles (exchange:string): void {
-        mkdir(`${exchange}`);
-        mkdir(`${exchange}/async_support'`);
-        mkdir(`${exchange}/abstract`);
-        mkdir(`${exchange}/pro`);
-    
-        // Copy initialization and base files
-        fs.copyFileSync('./python/ccxt/__init__.py', `${exchange}/__init__.py`);
-        cp('./python/ccxt/base', `./${exchange}/base`);
-        cp('./python/ccxt/async_support/base', `./${exchange}/async_support/base`);
-    
+        // for (const folder of ['', 'async_support', 'abstract', 'pro']) {
+        //     mkdir(`${exchange}/${folder}`);
+        // }
+ 
+        const sourceDir = './ccxt/python/ccxt/';
+        const targetDir = `./${exchange}/ccxt/`;
+
         // Copy exchange specific files
-        fs.copyFileSync(`./python/ccxt/async_support/${exchange}.py`, `${exchange}/async_support/${exchange}.py`);
-        fs.copyFileSync(`./python/ccxt/${exchange}.py`, `${exchange}/${exchange}.py`);
-        fs.copyFileSync(`./python/ccxt/abstract/${exchange}.py`, `${exchange}/abstract/${exchange}.py`);
-    
-        // Copy required dependencies
-        fs.copyFileSync('./python/ccxt/async_support/__init__.py', `${exchange}/async_support/__init__.py`);
+        cp(sourceDir + `async_support/${exchange}.py`, `${targetDir}async_support/${exchange}.py`);
+        cp(sourceDir + `${exchange}.py`, `${targetDir}${exchange}.py`);
+        cp(sourceDir + `abstract/${exchange}.py`, `${targetDir}abstract/${exchange}.py`);
+
+        // Copy initialization and base files
+        cp(sourceDir + '__init__.py', `${targetDir}__init__.py`);
+        cp(sourceDir + 'base', `${targetDir}base`);
+        cp(sourceDir + 'async_support/base', `${targetDir}async_support/base`);
+        cp(sourceDir + 'async_support/__init__.py', `${targetDir}async_support/__init__.py`);
     
         // Copy pro files
-        fs.copyFileSync('./python/ccxt/pro/__init__.py', `${exchange}/pro/__init__.py`);
-        fs.copyFileSync(`./python/ccxt/pro/${exchange}.py`, `${exchange}/pro/${exchange}.py`);
+        cp(sourceDir + 'pro/__init__.py', `${targetDir}pro/__init__.py`);
+        cp(sourceDir + `pro/${exchange}.py`, `${targetDir}pro/${exchange}.py`);
     
         // Copy static dependencies
-        cp('./python/ccxt/static_dependencies', `${exchange}/static_dependencies`);
+        cp(sourceDir + 'static_dependencies', `${targetDir}static_dependencies`);
     
         // Remove python directory
-        rmdir('./python/');
+        // rmdir('./ccxt/');
     }
     
     getAllFiles (dirPath: string, arrayOfFiles: string[] = []): string[] {
@@ -218,7 +218,7 @@ class build {
     }
 
     async init (exchange:string) {
-        await this.downloadRepo();
+        // await this.downloadRepo();
         this.moveFiles(exchange);
         await this.cleanInit(this.SYNC_INIT);
         await this.cleanInit(this.ASYNC_INIT, true);
@@ -237,5 +237,9 @@ class build {
 
 
 const argvs = process.argv.slice(2);
-const exchange = argvs[0];
+const exchange = argvs[0] || 'hyperliquid';
+if (!exchange) {
+    console.error('Please provide exchange name');
+    process.exit(1);
+}
 const buildInstance = new build(exchange);
