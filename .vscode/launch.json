@@ -8,14 +8,25 @@
             "name": "TSX: build",
             "type": "node",
             "request": "launch",
-            "runtimeExecutable": "tsx",
-            "program": "${workspaceFolder}\\build\\build.ts",
+            // "runtimeExecutable": "tsx",
+            // "program": "${workspaceFolder}\\build\\build.ts",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [ "run", "build", "${input:exName}"],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "skipFiles": [
                 "<node_internals>/**", "node_modules/**"
             ],
             "sourceMaps": true,
+            "localRoot": "${workspaceFolder}/build"
         }
+    ],
+    "inputs": [
+        {
+            "id": "exName",
+            "type":"promptString",
+            "description": "Exchange name",
+            "default": ""
+        },
     ]
 }
