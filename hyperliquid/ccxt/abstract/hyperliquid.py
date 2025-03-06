@@ -1,4 +1,4 @@
-from base.types import Entry
+from ccxt.base.types import Entry
 
 
 class ImplicitAPI:

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from base import errors
+from ccxt.base import errors
 
 # -----------------------------------------------------------------------------
 
-from base import decimal_to_precision
+from ccxt.base import decimal_to_precision
 
 from ccxt import BaseError                  # noqa: F401
 from ccxt import ExchangeError              # noqa: F401

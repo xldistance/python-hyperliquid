@@ -3,8 +3,8 @@
 import asyncio
 import socket
 import collections
-from async_support.base.ws.aiohttp_client import AiohttpClient
-from base.errors import NetworkError
+from ccxt.async_support.base.ws.aiohttp_client import AiohttpClient
+from ccxt.base.errors import NetworkError
 
 
 class FastClient(AiohttpClient):

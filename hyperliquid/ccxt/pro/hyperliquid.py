@@ -4,11 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from base.types import Any, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
-from async_support.base.ws.client import Client
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.base.types import Any, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.async_support.base.ws.client import Client
 from typing import List
-from base.errors import ExchangeError
+from ccxt.base.errors import ExchangeError
 
 
 class hyperliquid(ccxt.async_support.hyperliquid):
@@ -101,7 +101,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        order, globalParams = self.parseCreateOrderArgs(symbol, type, side, amount, price, params)
+        order, globalParams = self.parseCreateEditOrderArgs(None, symbol, type, side, amount, price, params)
         orders = await self.create_orders_ws([order], globalParams)
         return orders[0]
 
@@ -109,7 +109,6 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         """
         edit a trade order
 
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
 
         :param str id: cancel order id
@@ -130,7 +129,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']['public']
-        postRequest = self.edit_order_request(id, symbol, type, side, amount, price, params)
+        order, globalParams = self.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, params)
+        postRequest = self.editOrdersRequest([order], globalParams)
         wrapped = self.wrap_as_post_action(postRequest)
         request = self.safe_dict(wrapped, 'request', {})
         requestId = self.safe_string(wrapped, 'requestId')

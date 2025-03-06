@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.60'
+__version__ = '4.4.65'
 
 # -----------------------------------------------------------------------------
 
@@ -16,27 +16,27 @@ import sys
 import yarl
 import math
 from typing import Any, List
-from base.types import Int, Str, Num, Strings
+from ccxt.base.types import Int, Str, Num, Strings
 
 # -----------------------------------------------------------------------------
 
-from async_support.base.throttler import Throttler
+from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
-from base.errors import BaseError, NetworkError, BadSymbol, BadRequest, BadResponse, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded
-from base.types import OrderType, OrderSide, OrderRequest, CancellationRequest
+from ccxt.base.errors import BaseError, NetworkError, BadSymbol, BadRequest, BadResponse, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded
+from ccxt.base.types import OrderType, OrderSide, OrderRequest, CancellationRequest
 
 # -----------------------------------------------------------------------------
 
-from base.exchange import Exchange as BaseExchange, ArgumentsRequired
+from ccxt.base.exchange import Exchange as BaseExchange, ArgumentsRequired
 
 # -----------------------------------------------------------------------------
 
-from async_support.base.ws.functions import inflate, inflate64, gunzip
-from async_support.base.ws.fast_client import FastClient
-from async_support.base.ws.future import Future
-from async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
+from ccxt.async_support.base.ws.functions import inflate, inflate64, gunzip
+from ccxt.async_support.base.ws.fast_client import FastClient
+from ccxt.async_support.base.ws.future import Future
+from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
 
 # -----------------------------------------------------------------------------
@@ -74,17 +74,19 @@ class Exchange(BaseExchange):
         self.verify = config.get('verify', self.verify)
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
+        self.throttler = None
         super(Exchange, self).__init__(config)
-        self.throttle = None
-        self.init_rest_rate_limiter()
         self.markets_loading = None
         self.reloading_markets = False
 
-    def init_rest_rate_limiter(self):
-        self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
-
     def get_event_loop(self):
         return self.asyncio_loop
+
+    def init_throttler(self, cost=None):
+        self.throttler = Throttler(self.tokenBucket, self.asyncio_loop)
+
+    async def throttle(self, cost=None):
+        return await self.throttler(cost)
 
     def get_session(self):
         return self.session
@@ -107,7 +109,7 @@ class Exchange(BaseExchange):
                 self.asyncio_loop = asyncio.get_running_loop()
             else:
                 self.asyncio_loop = asyncio.get_event_loop()
-            self.throttle.loop = self.asyncio_loop
+            self.throttler.loop = self.asyncio_loop
 
         if self.ssl_context is None:
             # Create our SSL context object with our CA cert file
