@@ -104,16 +104,6 @@ class build {
         return text
     }
 
-    async cleanFile(filePath: string) {
-        let fileContent = fs.readFileSync(filePath, 'utf8');
-    
-        fileContent = regexAll (fileContent, [
-            [ /^from ccxt\./gm, 'from ' ], // new esm
-        ]).trim ()
-    
-        fs.writeFileSync(filePath, fileContent);
-    }
-
     async cleanInit(filePath: string, async = false) {
         let fileContent = fs.readFileSync(filePath, 'utf8');
         for (const id of this.allExchangesList) {
@@ -134,35 +124,13 @@ class build {
         // this.allExchangesList = [...fs.readFileSync('./ccxt/python/ccxt/__init__.py').matchAll(/from ccxt\.([a-z0-9_]+) import \1\s+# noqa: F401/g)].map(match => match[1]);
     }
 
-    getAllFiles (dirPath: string, arrayOfFiles: string[] = []): string[] {
-        const files = fs.readdirSync(dirPath);
-    
-        files.forEach(file => {
-            if (file.indexOf('static_dependencies') !== -1) {
-                return;
-            }
-            const fullPath = path.join(dirPath, file);
-            if (fs.statSync(fullPath).isDirectory()) {
-                arrayOfFiles = this.getAllFiles(fullPath, arrayOfFiles);
-            } else {
-                arrayOfFiles.push(fullPath);
-            }
-        });
-    
-        return arrayOfFiles;
-    };
 
     async init (exchange:string) {
-        // await this.downloadRepo();
-        // this.moveFiles(exchange);
+        await this.downloadRepo();
+        this.moveFiles(exchange);
         await this.getAllExchangesList();
         await this.cleanInit(this.SYNC_INIT);
-        // await this.cleanInit(this.ASYNC_INIT, true);
-        const allFiles = this.getAllFiles(this.FOLDER);
-        console.log(allFiles)
-        for (const file of allFiles) {
-            await this.cleanFile(file);
-        }
+        await this.cleanInit(this.ASYNC_INIT, true);
     }
 }
 
