@@ -24,12 +24,6 @@ async def main():
     ohlcv = await instance.fetch_ohlcv(symbol, "1m")
     print(ohlcv)
 
-    # fetch trades
-    #
-    trades = await instance.fetch_trades(symbol)
-    print(trades)
-
-
     # close after you finish
     await instance.close()
 

@@ -22,11 +22,6 @@ def main():
     ohlcv = instance.fetch_ohlcv(symbol, "1m")
     print(ohlcv)
 
-    # fetch trades
-    #
-    trades = instance.fetch_trades(symbol, limit=5)
-    print(trades)
-
 
 main()
 
