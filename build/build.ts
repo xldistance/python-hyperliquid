@@ -64,9 +64,9 @@ class build {
 
     constructor(exchange: string) {
         this.exchange = exchange;
-        this.SYNC_INIT = `./${exchange}/__init__.py`;
-        this.ASYNC_INIT = `./${exchange}/async_support/__init__.py`;
-        this.FOLDER = `./${exchange}/`;
+        this.SYNC_INIT = `./${exchange}/ccxt/__init__.py`;
+        this.ASYNC_INIT = `./${exchange}/ccxt/async_support/__init__.py`;
+        this.FOLDER = `./${exchange}/ccxt/`;
         this.init(exchange);
     }
 
@@ -80,35 +80,61 @@ class build {
     }
 
     moveFiles (exchange:string): void {
-        // for (const folder of ['', 'async_support', 'abstract', 'pro']) {
-        //     mkdir(`${exchange}/${folder}`);
-        // }
- 
         const sourceDir = './ccxt/python/ccxt/';
         const targetDir = `./${exchange}/ccxt/`;
-
-        // Copy exchange specific files
-        cp(sourceDir + `async_support/${exchange}.py`, `${targetDir}async_support/${exchange}.py`);
-        cp(sourceDir + `${exchange}.py`, `${targetDir}${exchange}.py`);
-        cp(sourceDir + `abstract/${exchange}.py`, `${targetDir}abstract/${exchange}.py`);
-
-        // Copy initialization and base files
-        cp(sourceDir + '__init__.py', `${targetDir}__init__.py`);
-        cp(sourceDir + 'base', `${targetDir}base`);
-        cp(sourceDir + 'async_support/base', `${targetDir}async_support/base`);
-        cp(sourceDir + 'async_support/__init__.py', `${targetDir}async_support/__init__.py`);
-    
-        // Copy pro files
-        cp(sourceDir + 'pro/__init__.py', `${targetDir}pro/__init__.py`);
-        cp(sourceDir + `pro/${exchange}.py`, `${targetDir}pro/${exchange}.py`);
-    
-        // Copy static dependencies
-        cp(sourceDir + 'static_dependencies', `${targetDir}static_dependencies`);
-    
+        const copyList = [
+            // exchange files
+            `${exchange}.py`,
+            `abstract/${exchange}.py`,
+            `async_support/${exchange}.py`,
+            // base files
+            'base',
+            'async_support/base',
+            '__init__.py',
+            'async_support/__init__.py',
+            // pro files
+            'pro/__init__.py',
+            `pro/${exchange}.py`,
+            // static dependencies
+            'static_dependencies',
+        ];
+        for (const file of copyList) {
+            cp(sourceDir + file, targetDir + file);
+        }
         // Remove python directory
         rmdir('./ccxt/');
     }
     
+    regexAll (text, array) {
+        for (const i in array) {
+            let regex = array[i][0]
+            const flags = (typeof regex === 'string') ? 'g' : undefined
+            regex = new RegExp (regex, flags)
+            text = text.replace (regex, array[i][1])
+        }
+        return text
+    }
+
+    async cleanInit(filePath: string, async = false) {
+        let fileContent = fs.readFileSync(filePath, 'utf8');
+        for (const id of this.allExchangesList) {
+            if (id !== this.exchange) {
+                fileContent = this.regexAll (fileContent, [
+                    [ new RegExp(`from ccxt.${id} import ${id}.+\n`), '' ],
+                    [ new RegExp(`\\s+'${id}',\n`), '' ],
+                ]).trim ()
+            }
+        }
+        fs.writeFileSync(this.SYNC_INIT, fileContent + '\n');
+    }
+
+    allExchangesList:string[] = [];
+
+    async getAllExchangesList () {
+        this.allExchangesList = fs.readdirSync('./ccxt/ts/src/').filter(file => file.endsWith('.ts')).map(file => file.replace('.ts', ''));
+        // this.allExchangesList = [...fs.readFileSync('./ccxt/python/ccxt/__init__.py').matchAll(/from ccxt\.([a-z0-9_]+) import \1\s+# noqa: F401/g)].map(match => match[1]);
+    }
+
     getAllFiles (dirPath: string, arrayOfFiles: string[] = []): string[] {
         const files = fs.readdirSync(dirPath);
     
@@ -126,102 +152,13 @@ class build {
     
         return arrayOfFiles;
     };
-    
-    regexAll (text, array) {
-        for (const i in array) {
-            let regex = array[i][0]
-            const flags = (typeof regex === 'string') ? 'g' : undefined
-            regex = new RegExp (regex, flags)
-            text = text.replace (regex, array[i][1])
-        }
-        return text
-    }
-    
-
-    async cleanFile(filePath: string) {
-        let fileContent = fs.readFileSync(filePath, 'utf8');
-    
-        fileContent = this.regexAll (fileContent, [
-            [ /^from ccxt\./gm, 'from ' ], // new esm
-        ]).trim ()
-    
-        fs.writeFileSync(filePath, fileContent);
-    }
-
-
-
-        
-
-    async cleanInit(filePath: string, async = false) {
-        let fileContent = fs.readFileSync(filePath, 'utf8');
-        // const fileByLine = fileContent.split('\n');
-
-        fileContent = this.regexAll (fileContent, [
-            // [ /from ccxt\./gm, '' ], // new esm
-        ]).trim ()
-
-        const file: string[] = []
-        const fileLines = fileContent.split('\n');
-
-        let pattern: any = undefined;
-        if (!async) {
-            pattern = /^from ccxt\.([a-zA-Z0-9_]+) import \1.+/;
-        } else {
-            pattern = /^from ccxt\.async_support\.([a-zA-Z0-9_]+) import \1.+/;
-        }
-        let insideExchange = false
-        for (const line of fileLines) {
-            if (new RegExp(pattern).test(line)) {
-                continue;
-            }
-
-            if (line.startsWith('#') || line.trim() === '') {
-                file.push(line);
-                continue;
-            }
-
-            if (line === 'exchanges = [') {
-                insideExchange = true;
-                continue;
-            }
-
-            if (insideExchange && line === ']') {
-                insideExchange = false;
-                continue;
-            }
-
-            if (insideExchange) {
-                continue
-            }
-
-            if (line.startsWith('__all__')) {
-                continue;
-            }
-
-            file.push(line);
-        }
-
-        file.push("")
-        if (async) {
-            file.push(`from async_support import ${exchange}`)
-        } else {
-            file.push(`import ${exchange}`)
-        }
-
-        let newFileContent = file.join('\n');
-        newFileContent = this.regexAll (newFileContent, [
-            [ /from ccxt\./gm, 'from ' ],
-        ]).trim ()
-
-        // save file
-        fs.writeFileSync(this.SYNC_INIT, newFileContent);
-    }
 
     async init (exchange:string) {
         // await this.downloadRepo();
         // this.moveFiles(exchange);
+        await this.getAllExchangesList();
         await this.cleanInit(this.SYNC_INIT);
-        await this.cleanInit(this.ASYNC_INIT, true);
+        // await this.cleanInit(this.ASYNC_INIT, true);
         const allFiles = this.getAllFiles(this.FOLDER);
         console.log(allFiles)
         for (const file of allFiles) {
