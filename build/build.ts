@@ -122,14 +122,14 @@ class build {
 
 
     async init (exchange:string) {
-        // await this.downloadRepo();
+        await this.downloadRepo();
         await this.setAllExchangesList();
+        // Remove git dir now (after reading exchanges)
+        fs.rmSync(__dirname + '/ccxt/', { recursive: true, force: true });
         this.moveFiles(exchange);
 
         await this.cleanInitFile(this.destinationFolder + '__init__.py');
         await this.cleanInitFile(this.destinationFolder + 'async_support/__init__.py', true);
-        // Remove git dir
-        // fs.rmSync(__dirname + '/ccxt/', { recursive: true, force: true });
     }
 }
 
