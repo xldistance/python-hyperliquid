@@ -104,7 +104,7 @@ class build {
         return text
     }
 
-    async cleanInit(filePath: string, async = false) {
+    async cleanInitFile(filePath: string, async = false) {
         let fileContent = fs.readFileSync(filePath, 'utf8');
         for (const id of this.allExchangesList) {
             if (id !== this.exchange) {
@@ -129,8 +129,8 @@ class build {
         await this.downloadRepo();
         this.moveFiles(exchange);
         await this.getAllExchangesList();
-        await this.cleanInit(this.SYNC_INIT);
-        await this.cleanInit(this.ASYNC_INIT, true);
+        await this.cleanInitFile(this.SYNC_INIT);
+        await this.cleanInitFile(this.ASYNC_INIT, true);
     }
 }
 
