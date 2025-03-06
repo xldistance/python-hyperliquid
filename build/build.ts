@@ -51,7 +51,7 @@ class build {
 
     constructor(exchange: string) {
         this.exchange = exchange;
-        this.destinationFolder = `./../${exchange}/ccxt/`;
+        this.destinationFolder = __dirname +  `/../ccxt/`;
         this.init(exchange);
     }
 
@@ -66,7 +66,6 @@ class build {
 
     moveFiles (exchange:string): void {
         const sourceDir = __dirname + '/ccxt/python/ccxt/';
-        const targetDir = `./../${exchange}/ccxt/`;
         const copyList = [
             // exchange files
             `${exchange}.py`,
@@ -84,7 +83,7 @@ class build {
             'static_dependencies',
         ];
         for (const file of copyList) {
-            cp(sourceDir + file, targetDir + file);
+            cp(sourceDir + file,  this.destinationFolder + file);
         }
     }
     
@@ -103,7 +102,8 @@ class build {
         for (const id of this.allExchangesList) {
             if (id !== this.exchange) {
                 fileContent = this.regexAll (fileContent, [
-                    [ new RegExp(`from ccxt.${id} import ${id}.+\n`), '' ],
+                    [ new RegExp(`from ccxt\.${id} import ${id}.+\n`), '' ],
+                    [ new RegExp(`from ccxt\.async_support\.${id} import ${id}.+\n`), '' ],
                     [ new RegExp(`\\s+'${id}',\n`), '' ],
                 ]).trim ()
             }
@@ -121,14 +121,14 @@ class build {
 
 
     async init (exchange:string) {
-        await this.downloadRepo();
+        // await this.downloadRepo();
         await this.setAllExchangesList();
         this.moveFiles(exchange);
 
         await this.cleanInitFile(this.destinationFolder + '__init__.py');
         await this.cleanInitFile(this.destinationFolder + 'async_support/__init__.py', true);
         // Remove git dir
-        fs.rmSync(__dirname + '/ccxt/', { recursive: true, force: true });
+        // fs.rmSync(__dirname + '/ccxt/', { recursive: true, force: true });
     }
 }
 

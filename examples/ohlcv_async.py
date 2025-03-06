@@ -1,18 +1,19 @@
 import os
 import sys
 import asyncio
+
 root = os.path.dirname(os.path.dirname((os.path.abspath(__file__))))
-sys.path.append(root + '/hyperliquid')
+sys.path.append(root + '/')
 
-
-import hyperliquid.async_support as hyperliquid
+import ccxt.async_support as ccxt
 
 
 async def main():
-    instance = hyperliquid.hyperliquid({})
+    instance = ccxt.hyperliquid({})
     await instance.load_markets()
-    ohlcv = await instance.fetch_ohlcv("BTC/USDC:USDC", "1m")
+    ohlcv = await instance.fetch_ticker("BTC/USDC:USDC")
     print(ohlcv)
+    await instance.close()
 
 asyncio.run(main())
 

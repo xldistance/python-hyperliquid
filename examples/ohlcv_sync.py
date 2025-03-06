@@ -2,16 +2,16 @@ import os
 import sys
 
 root = os.path.dirname(os.path.dirname((os.path.abspath(__file__))))
-sys.path.append(root + '/hyperliquid')
+sys.path.append(root + '/')
 
 
-import hyperliquid
+import ccxt
 
 
 def main():
-    instance = hyperliquid.hyperliquid({})
+    instance = ccxt.hyperliquid({})
     markets = instance.load_markets()
-    ohlcv = instance.fetch_ohlcv("BTC/USDC:USDC", "1m")
+    ohlcv = instance.fetch_ticker("BTC/USDC:USDC")
     print(ohlcv)
 
 main()
