@@ -106,7 +106,7 @@ class build {
         cp(sourceDir + 'static_dependencies', `${targetDir}static_dependencies`);
     
         // Remove python directory
-        // rmdir('./ccxt/');
+        rmdir('./ccxt/');
     }
     
     getAllFiles (dirPath: string, arrayOfFiles: string[] = []): string[] {
@@ -219,7 +219,7 @@ class build {
 
     async init (exchange:string) {
         // await this.downloadRepo();
-        this.moveFiles(exchange);
+        // this.moveFiles(exchange);
         await this.cleanInit(this.SYNC_INIT);
         await this.cleanInit(this.ASYNC_INIT, true);
         const allFiles = this.getAllFiles(this.FOLDER);
