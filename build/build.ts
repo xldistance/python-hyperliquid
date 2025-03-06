@@ -14,8 +14,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 function cp(source: string, destination: string): void {
     // check if source is file or dir
     if (!fs.existsSync(source)) {
-        console.error(`Source file/directory does not exist: ${source}`);
-        return;
+        throw new Error(`Source file/directory does not exist: ${source}`);
     }
     const stats = fs.statSync(source);
     if (stats.isFile()) {
@@ -51,7 +50,7 @@ class build {
 
     constructor(exchange: string) {
         this.exchange = exchange;
-        this.destinationFolder = __dirname +  `/../ccxt/`;
+        this.destinationFolder = __dirname +  `/../${exchange}/ccxt/`;
         this.init(exchange);
     }
 
@@ -108,6 +107,8 @@ class build {
                 ]).trim ()
             }
         }
+        const importJunction = `import sys\nimport ${this.exchange}.ccxt as ccxt_module\nsys.modules[\'ccxt\'] = ccxt_module\n\n`;
+        fileContent = importJunction + fileContent;
         fs.writeFileSync(filePath, fileContent + '\n');
     }
 
@@ -121,14 +122,14 @@ class build {
 
 
     async init (exchange:string) {
-        await this.downloadRepo();
+        // await this.downloadRepo();
         await this.setAllExchangesList();
         this.moveFiles(exchange);
 
         await this.cleanInitFile(this.destinationFolder + '__init__.py');
         await this.cleanInitFile(this.destinationFolder + 'async_support/__init__.py', true);
         // Remove git dir
-        fs.rmSync(__dirname + '/ccxt/', { recursive: true, force: true });
+        // fs.rmSync(__dirname + '/ccxt/', { recursive: true, force: true });
     }
 }
 
