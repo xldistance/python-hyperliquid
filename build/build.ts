@@ -47,15 +47,11 @@ function cp(source: string, destination: string): void {
 class build {
 
     exchange:string;
-    SYNC_INIT:string;
-    ASYNC_INIT:string;
-    FOLDER:string;
+    destinationFolder:string;
 
     constructor(exchange: string) {
         this.exchange = exchange;
-        this.SYNC_INIT = `./${exchange}/ccxt/__init__.py`;
-        this.ASYNC_INIT = `./${exchange}/ccxt/async_support/__init__.py`;
-        this.FOLDER = `./${exchange}/ccxt/`;
+        this.destinationFolder = `./../${exchange}/ccxt/`;
         this.init(exchange);
     }
 
@@ -69,8 +65,8 @@ class build {
     }
 
     moveFiles (exchange:string): void {
-        const sourceDir = './ccxt/python/ccxt/';
-        const targetDir = `./${exchange}/ccxt/`;
+        const sourceDir = __dirname + '/ccxt/python/ccxt/';
+        const targetDir = `./../${exchange}/ccxt/`;
         const copyList = [
             // exchange files
             `${exchange}.py`,
@@ -90,8 +86,6 @@ class build {
         for (const file of copyList) {
             cp(sourceDir + file, targetDir + file);
         }
-        // Remove python directory
-        fs.rmSync('./ccxt/', { recursive: true, force: true });
     }
     
     regexAll (text, array) {
@@ -114,23 +108,27 @@ class build {
                 ]).trim ()
             }
         }
-        fs.writeFileSync(this.SYNC_INIT, fileContent + '\n');
+        fs.writeFileSync(filePath, fileContent + '\n');
     }
 
     allExchangesList:string[] = [];
 
-    async getAllExchangesList () {
-        this.allExchangesList = fs.readdirSync('./ccxt/ts/src/').filter(file => file.endsWith('.ts')).map(file => file.replace('.ts', ''));
-        // this.allExchangesList = [...fs.readFileSync('./ccxt/python/ccxt/__init__.py').matchAll(/from ccxt\.([a-z0-9_]+) import \1\s+# noqa: F401/g)].map(match => match[1]);
+    async setAllExchangesList () {
+        this.allExchangesList = fs.readdirSync(__dirname + '/ccxt/ts/src/').filter(file => file.endsWith('.ts')).map(file => file.replace('.ts', ''));
+        // or
+        //                    = [... fs.readFileSync('./ccxt/python/ccxt/__init__.py').matchAll(/from ccxt\.([a-z0-9_]+) import \1\s+# noqa: F401/g)].map(match => match[1]);
     }
 
 
     async init (exchange:string) {
         await this.downloadRepo();
+        await this.setAllExchangesList();
         this.moveFiles(exchange);
-        await this.getAllExchangesList();
-        await this.cleanInitFile(this.SYNC_INIT);
-        await this.cleanInitFile(this.ASYNC_INIT, true);
+
+        await this.cleanInitFile(this.destinationFolder + '__init__.py');
+        await this.cleanInitFile(this.destinationFolder + 'async_support/__init__.py', true);
+        // Remove git dir
+        fs.rmSync(__dirname + '/ccxt/', { recursive: true, force: true });
     }
 }
 
@@ -141,7 +139,7 @@ class build {
 
 
 const argvs = process.argv.slice(2);
-const exchange = argvs[0] || 'hyperliquid';
+const exchange = argvs[0];
 if (!exchange) {
     console.error('Please provide exchange name');
     process.exit(1);
