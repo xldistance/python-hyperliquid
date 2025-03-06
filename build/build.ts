@@ -11,17 +11,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ##################### helpers ##################### //
 
-function mkdir(dirPath: string): void {
-    if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, { recursive: true });
-    }
-}
-
-function rmdir(dirPath: string): void {
-    fs.rmSync(dirPath, { recursive: true, force: true });
-}
-
-
 function cp(source: string, destination: string): void {
     // check if source is file or dir
     if (!fs.existsSync(source)) {
@@ -102,7 +91,7 @@ class build {
             cp(sourceDir + file, targetDir + file);
         }
         // Remove python directory
-        rmdir('./ccxt/');
+        fs.rmSync('./ccxt/', { recursive: true, force: true });
     }
     
     regexAll (text, array) {
@@ -113,6 +102,16 @@ class build {
             text = text.replace (regex, array[i][1])
         }
         return text
+    }
+
+    async cleanFile(filePath: string) {
+        let fileContent = fs.readFileSync(filePath, 'utf8');
+    
+        fileContent = regexAll (fileContent, [
+            [ /^from ccxt\./gm, 'from ' ], // new esm
+        ]).trim ()
+    
+        fs.writeFileSync(filePath, fileContent);
     }
 
     async cleanInit(filePath: string, async = false) {
