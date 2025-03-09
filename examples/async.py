@@ -5,14 +5,14 @@ import asyncio
 root = os.path.dirname(os.path.dirname((os.path.abspath(__file__))))
 sys.path.append(root + '/')
 
-from hyperliquid import hyperliquid_async
+from hyperliquid import HyperliquidAsync
 
 # ********** on Windows, uncomment below ********** 
 # if sys.platform == 'win32':
 # 	asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 async def main():
-    instance = hyperliquid_async({})
+    instance = HyperliquidAsync({})
     await instance.load_markets()
     symbol = "BTC/USDC:USDC"
 

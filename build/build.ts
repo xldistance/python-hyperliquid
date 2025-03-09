@@ -35,6 +35,9 @@ function cp(source: string, destination: string): void {
     }
 }
 
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 // ################################################### //
 
@@ -142,11 +145,12 @@ class build {
     }
 
     creataPackageInitFile () {
+        const capitalized = capitalize (this.exchange);
         const cont = 'import sys\n' +
                     `import ${this.exchange}.ccxt as ccxt_module\n` +
                     'sys.modules[\'ccxt\'] = ccxt_module\n\n' +
-                    `from ${this.exchange}.ccxt import ${this.exchange} as ${this.exchange}_sync\n` +
-                    `from ${this.exchange}.ccxt.async_support.${this.exchange} import ${this.exchange} as ${this.exchange}_async\n`;
+                    `from ${this.exchange}.ccxt import ${this.exchange} as ${capitalized}Sync\n` +
+                    `from ${this.exchange}.ccxt.async_support.${this.exchange} import ${this.exchange} as ${capitalized}Async\n`;
         fs.writeFileSync(this.destinationFolder + '/../__init__.py', cont);
     }
 
