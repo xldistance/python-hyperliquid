@@ -1,9 +1,6 @@
 import * as fs from 'fs'
 import path from 'path'
-import extractZip from 'extract-zip'
-import { Readable } from 'node:stream'
 import { fileURLToPath } from 'url';
-import { writeFileSync } from 'node:fs'
 import { exec, execSync } from 'node:child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -45,12 +42,18 @@ function cp(source: string, destination: string): void {
 
 class build {
 
-    exchange:string;
-    destinationFolder:string;
+    language:string = 'python';
 
-    constructor(exchange: string) {
+    exchange:string;
+    sourceFolder:string;
+    destinationFolder:string;
+    downloadAndDelete:boolean;
+
+    constructor(exchange: string, downloadAndDelete: boolean) {
         this.exchange = exchange;
+        this.sourceFolder = __dirname +  `/ccxt/`;
         this.destinationFolder = __dirname +  `/../${exchange}/ccxt/`;
+        this.downloadAndDelete = downloadAndDelete;
         this.init(exchange);
     }
 
@@ -63,8 +66,8 @@ class build {
         execSync ('git clone --depth 1 https://github.com/ccxt/ccxt.git');
     }
 
-    moveFiles (exchange:string): void {
-        const sourceDir = __dirname + '/ccxt/python/ccxt/';
+    copyFiles (exchange:string): void {
+        const sourceDir = this.sourceFolder + '/python/ccxt/';
         const copyList = [
             // exchange files
             `${exchange}.py`,
@@ -86,6 +89,32 @@ class build {
         }
     }
     
+    allExchangesList:string[] = [];
+
+    async setAllExchangesList () {
+        this.allExchangesList = fs.readdirSync(__dirname + '/ccxt/ts/src/').filter(file => file.endsWith('.ts')).map(file => file.replace('.ts', ''));  //  [... fs.readFileSync('./ccxt/python/ccxt/__init__.py').matchAll(/from ccxt\.([a-z0-9_]+) import \1\s+# noqa/g)].map(match => match[1]);
+    }
+
+    createMetaPackage () {
+        const originalPackage = JSON.parse (fs.readFileSync (__dirname + '/ccxt/package.json', 'utf8'));
+        const packageJson = {
+            name: this.exchange,
+            description: `A Python cryptocurrency trading library for ${this.exchange}`,
+            keywords: [this.exchange, "cryptocurrency", "trading", "library", "api", "rest", "websocket", "exchange", "ccxt"],
+        };
+        const extended = Object.assign (originalPackage, packageJson);
+        extended['repository']['url'] = `https://github.com/ccxt/${this.language}-${this.exchange}.git`;
+        // remove all props except
+        const neededProps = ['name', 'version', 'description', 'keywords', 'repository', 'readme', 'author', 'license', 'bugs', 'homepage', 'collective', 'ethereum'];
+        // remove with inline
+        for (const key in extended) {
+            if (!neededProps.includes(key)) {
+                delete extended[key];
+            }
+        }
+        fs.writeFileSync (__dirname + '/package-meta.json', JSON.stringify(extended, null, 4));
+    }
+
     regexAll (text, array) {
         for (const i in array) {
             let regex = array[i][0]
@@ -112,23 +141,31 @@ class build {
         fs.writeFileSync(filePath, fileContent + '\n');
     }
 
-    allExchangesList:string[] = [];
-
-    async setAllExchangesList () {
-        this.allExchangesList = fs.readdirSync(__dirname + '/ccxt/ts/src/').filter(file => file.endsWith('.ts')).map(file => file.replace('.ts', ''));  //  [... fs.readFileSync('./ccxt/python/ccxt/__init__.py').matchAll(/from ccxt\.([a-z0-9_]+) import \1\s+# noqa/g)].map(match => match[1]);
+    creataPackageInitFile () {
+        const cont = 'import sys\n' +
+                    `import ${this.exchange}.ccxt as ccxt_module\n` +
+                    'sys.modules[\'ccxt\'] = ccxt_module\n\n' +
+                    `from ${this.exchange}.ccxt import ${this.exchange} as ${this.exchange}_sync\n` +
+                    `from ${this.exchange}.ccxt.async_support.${this.exchange} import ${this.exchange} as ${this.exchange}_async\n`;
+        fs.writeFileSync(this.destinationFolder + '/../__init__.py', cont);
     }
 
-
     async init (exchange:string) {
-        await this.downloadRepo();
-        this.moveFiles(exchange);
-        await this.setAllExchangesList();
+        if (this.downloadAndDelete) {
+            await this.downloadRepo ();
+        }
+        this.copyFiles (exchange);
+        await this.setAllExchangesList ();
+        await this.creataPackageInitFile ();
 
-        await this.cleanInitFile(this.destinationFolder + '__init__.py');
-        await this.cleanInitFile(this.destinationFolder + 'async_support/__init__.py', true);
+        await this.cleanInitFile (this.destinationFolder + '__init__.py');
+        await this.cleanInitFile (this.destinationFolder + 'async_support/__init__.py', true);
 
         // Remove git dir now (after reading exchanges)
-        fs.rmSync(__dirname + '/ccxt/', { recursive: true, force: true });
+        this.createMetaPackage ();
+        if (this.downloadAndDelete) {
+            fs.rmSync(__dirname + '/ccxt/', { recursive: true, force: true });
+        }
     }
 }
 
@@ -144,4 +181,5 @@ if (!exchange) {
     console.error('Please provide exchange name');
     process.exit(1);
 }
-const buildInstance = new build(exchange);
+const donwloadAndDelete = !argvs.includes('--nodownload');
+new build(exchange, donwloadAndDelete);
