@@ -10,11 +10,11 @@ here = path.abspath(path.dirname(__file__))
 root = path.dirname(here)
 
 readme = path.join(here, 'README.md')
-package_json = path.join(here, 'build/ccxt-package.json')
+package_json = path.join(here, 'build/package-meta.json')
 
 # a workaround when installing locally from git repository with pip install -e .
 if not path.isfile(package_json):
-    package_json = path.join(root, 'build/ccxt-package.json')
+    package_json = path.join(root, 'build/package-meta.json')
 
 # long description from README file
 with open(readme, encoding='utf-8') as f:
@@ -36,7 +36,7 @@ setup(
 
     name=package['name'],
     version=package['version'],
-    description="Trading library - " + package['name'],
+    description=package['description'],
     long_description=long_description,
     long_description_content_type='text/markdown',
 
