@@ -11,7 +11,10 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 
 
-class hyperliquid(ccxt.async_support.hyperliquid):
+from ccxt.async_support import hyperliquid as hyperliquidAsync
+
+
+class hyperliquid(hyperliquidAsync):
 
     def describe(self) -> Any:
         return self.deep_extend(super(hyperliquid, self).describe(), {

@@ -8,8 +8,8 @@ sys.path.append(root + '/')
 from hyperliquid import HyperliquidWs
 
 # ********** on Windows, uncomment below ********** 
-# if sys.platform == 'win32':
-# 	asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+if sys.platform == 'win32':
+	asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 async def my_watch_ticker_my(exchange, symbol):
@@ -32,11 +32,12 @@ async def main():
     symbol = "BTC/USDC:USDC"
 
     # fetch ticker
-    my_watch_ticker_my(instance, symbol)
+    ticker = my_watch_ticker_my(instance, symbol)
 
     # fetch orderbook
-    my_watch_orderbook(instance, symbol)
+    ob = my_watch_orderbook(instance, symbol)
    
+    await asyncio.gather(ticker, ob)
 
     # close after you finish
     await instance.close()
