@@ -158,6 +158,16 @@ class build {
         fs.writeFileSync(this.destinationFolder + '/../__init__.py', cont);
     }
 
+    addWsLines () {
+        const path = this.destinationFolder + `pro/${this.exchange}.py`;
+        const fileContent = fs.readFileSync(path, 'utf8');
+        const addLine = `from ccxt.async_support import ${this.exchange} as ${this.exchange}Async\n`;
+        const newContent = fileContent.replace(/class \w+\(.*?\):/, addLine + `\n\nclass ${this.exchange}(${this.exchange}Async):`);
+        fs.writeFileSync(path, newContent);
+    }
+
+
+
     async init (exchange:string) {
         if (this.downloadAndDelete) {
             await this.downloadRepo ();
@@ -169,6 +179,7 @@ class build {
         await this.cleanInitFile (this.destinationFolder + '__init__.py');
         await this.cleanInitFile (this.destinationFolder + 'async_support/__init__.py');
         await this.cleanInitFile (this.destinationFolder + 'pro/__init__.py');
+        this.addWsLines ();
 
         // Remove git dir now (after reading exchanges)
         this.createMetaPackage ();
