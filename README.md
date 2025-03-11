@@ -7,8 +7,6 @@ You can check Hyperliquid's docs here: [Docs](https://hyperliquid.gitbook.io/hyp
 You can check the SDK docs here: [SDK](https://docs.ccxt.com/#/exchanges/hyperliquid)
 
 
-*This package derives from CCXT and allows you to call pretty much every endpoint by either using the unified CCXT API or calling the endpoints directly*
-
 ## Installation
 
 ```
