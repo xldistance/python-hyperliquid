@@ -32,10 +32,13 @@ project_urls = {
     'Funding': 'https://opencollective.com/ccxt',
 }
 
+raw_version = package['version']
+version = '0.' + raw_version[2:]
+
 setup(
 
     name=package['name'],
-    version=package['version'],
+    version=version,
     description=package['description'],
     long_description=long_description,
     long_description_content_type='text/markdown',
