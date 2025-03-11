@@ -135,11 +135,14 @@ class build {
                 fileContent = this.regexAll (fileContent, [
                     [ new RegExp(`from ccxt\.${id} import ${id}.+\n`), '' ],
                     [ new RegExp(`from ccxt\.async_support\.${id} import ${id}.+\n`), '' ],
+                    [ new RegExp(`from ccxt\.pro\.${id} import ${id}.+\n`), '' ],
                     [ new RegExp(`\\s+'${id}',\n`), '' ],
                 ]).trim ()
             }
         }
-        const importJunction = `import sys\nimport ${this.exchange}.ccxt as ccxt_module\nsys.modules[\'ccxt\'] = ccxt_module\n\n`;
+        const importJunction = `import sys\n` + 
+                               `import ${this.exchange}.ccxt as ccxt_module\n` + 
+                               `sys.modules[\'ccxt\'] = ccxt_module\n\n`;
         fileContent = importJunction + fileContent;
         fs.writeFileSync(filePath, fileContent + '\n');
     }
@@ -150,8 +153,17 @@ class build {
                     `import ${this.exchange}.ccxt as ccxt_module\n` +
                     'sys.modules[\'ccxt\'] = ccxt_module\n\n' +
                     `from ${this.exchange}.ccxt import ${this.exchange} as ${capitalized}Sync\n` +
-                    `from ${this.exchange}.ccxt.async_support.${this.exchange} import ${this.exchange} as ${capitalized}Async\n`;
+                    `from ${this.exchange}.ccxt.async_support.${this.exchange} import ${this.exchange} as ${capitalized}Async\n` +
+                    `from ${this.exchange}.ccxt.pro.${this.exchange} import ${this.exchange} as ${capitalized}Ws\n`
         fs.writeFileSync(this.destinationFolder + '/../__init__.py', cont);
+    }
+
+    addWsLines () {
+        const path = this.destinationFolder + `pro/${this.exchange}.py`;
+        const fileContent = fs.readFileSync(path, 'utf8');
+        const addLine = `from ccxt.async_support import ${this.exchange} as ${this.exchange}Async\n`;
+        const newContent = fileContent.replace(/class \w+\(.*?\):/, addLine + `\n\nclass ${this.exchange}(${this.exchange}Async):`);
+        fs.writeFileSync(path, newContent);
     }
 
     async init (exchange:string) {
@@ -163,7 +175,9 @@ class build {
         await this.creataPackageInitFile ();
 
         await this.cleanInitFile (this.destinationFolder + '__init__.py');
-        await this.cleanInitFile (this.destinationFolder + 'async_support/__init__.py', true);
+        await this.cleanInitFile (this.destinationFolder + 'async_support/__init__.py');
+        await this.cleanInitFile (this.destinationFolder + 'pro/__init__.py');
+        this.addWsLines ();
 
         // Remove git dir now (after reading exchanges)
         this.createMetaPackage ();
