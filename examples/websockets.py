@@ -1,0 +1,48 @@
+import os
+import sys
+import asyncio
+
+root = os.path.dirname(os.path.dirname((os.path.abspath(__file__))))
+sys.path.append(root + '/')
+
+from hyperliquid import HyperliquidWs
+
+# ********** on Windows, uncomment below ********** 
+# if sys.platform == 'win32':
+# 	asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+
+async def my_watch_ticker_my(exchange, symbol):
+    while (True):
+        result = await exchange.watch_ticker(symbol)
+        print(result)
+
+
+async def my_watch_orderbook(exchange, symbol):
+    while (True):
+        result = await exchange.watch_order_book(symbol)
+        print(result)
+
+
+
+
+async def main():
+    instance = HyperliquidWs({})
+    await instance.load_markets()
+    symbol = "BTC/USDC:USDC"
+
+    # fetch ticker
+    my_watch_ticker_my(instance, symbol)
+
+    # fetch orderbook
+    my_watch_orderbook(instance, symbol)
+   
+
+    # close after you finish
+    await instance.close()
+
+
+
+
+asyncio.run(main())
+
