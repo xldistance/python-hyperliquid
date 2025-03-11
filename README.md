@@ -36,9 +36,27 @@ def main():
     order =  instance.create_limit_order("BTC/USDC:USDC", "limit", "buy", 1, 100000)
 ```
 
+#### Raw call
+
+You can also construct your requests from scrach.
+
+```Python
+        request = {
+            'type': 'candleSnapshot',
+            'req': {
+                'coin': coin,
+                'interval': tf,
+                'startTime': since,
+                'endTime': until,
+            },
+        }
+        response = await instance.public_post_info(request)
+```
+
+
 ### Websockets
 
-``Python
+```Python
 from hyperliquid import HyperliquidWs
 
 async def main():
@@ -47,3 +65,7 @@ async def main():
         orders = await instance.watch_orders(symbol)
 ```
 
+## Contribution
+- Give us a star :star:
+- Fork and Clone! Awesome
+- Select existing issues or create a new issue.
