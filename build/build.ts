@@ -166,8 +166,6 @@ class build {
         fs.writeFileSync(path, newContent);
     }
 
-
-
     async init (exchange:string) {
         if (this.downloadAndDelete) {
             await this.downloadRepo ();
