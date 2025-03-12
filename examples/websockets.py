@@ -8,8 +8,8 @@ sys.path.append(root + '/')
 from hyperliquid import HyperliquidWs
 
 # ********** on Windows, uncomment below ********** 
-if sys.platform == 'win32':
-	asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+# if sys.platform == 'win32':
+# 	asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 async def my_watch_ticker_my(exchange, symbol):
